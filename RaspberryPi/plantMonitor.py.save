@@ -1,0 +1,90 @@
+#Raspberry Pi controlled Car (via Arduino)
+#Author: Austin Wilson
+
+#Import packages from PubHub
+from pubnub import Pubnub
+
+#Setup Serial communication between Arduino and Rspberry Pi
+import serial
+import json
+import subprocess
+import os
+import threading
+import time
+import sys
+
+subprocess.Popen(["nohup", "stdbuf", "-oL", "-eL" ,"./CypressUSB/cypress-usb-i2c-bridge/cy3240_i2c", ">", ".psocJson.txt"])
+
+print "Starting PSOC Reader"
+
+time.sleep(5)
+
+ser = serial.Serial('/dev/ttyACM0', 9600)
+
+jsonTxt = ""
+psocJson = ""
+
+avgLight = 0
+avgHumidity = 0
+avgTemp = 0
+
+totalCount = 0
+totalLight = 0
+totalHumidity = 0
+totalTemp = 0
+
+#Point to the PubHub Device
+pubnub = Pubnub(publish_key="pub-c-0ba1d27d-852a-4884-a4f7-007874c4c3c3", subscribe_key="sub-c-cbf2cabc-4ce9-11e6-a1d5-0619f8945a4f", ssl_on=False) #UPDATE WITH YOUR INFORMATION IF YOU ARE SELF HOSTING
+
+#Set user's channel to their sessionID
+#channel = raw_input('Please Enter your session ID: ')
+channel = "my_device" #UNCOMMENT IF YOU ARE HOSTING YOURSELF
+
+def callback(message, channel):
+	type = message['type']
+	command = message['command']
+	print command
+	if type == "water":
+                ser.write('0')
+
+def error(message):
+	print("ERROR : " + str(message))
+
+
+def connect(message):
+	print("CONNECTED")
+
+
+def reconnect(message):
+	print("RECONNECTED")
+
+
+def disconnect(message):
+	print("DISCONNECTED")
+
+
+pubnub.subscribe(channels=channel, callback=callback, error=error,
+                 connect=connect, reconnect=reconnect, disconnect=disconnect)
+
+def takePhoto():
+	c= subprocess.check_output(["vcgencmd","get_camera"])
+	int(c.strip()[-1])
+	if (c):
+		print "detected"
+	else:
+		print "not detected"
+
+def publishDataToPubnub():
+	print "publish  function"
+	takePhoto()
+	threading.Timer(900, publishDataToPubnub).start
+
+threading.Timer(10, publishDataToPubnub()).start
+
+while (1==1):
+	fileHandle = open('psocJson.txt')
+	jsonTxt = fileHandle.readlines()
+	fileHandle.close()
+	psocJson = json.loads(jsonTxt[-1])
+	#print psocJson["motion"]
+	
