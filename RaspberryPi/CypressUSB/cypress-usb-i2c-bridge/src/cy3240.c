@@ -575,7 +575,7 @@ reconfigure_clock(
                 &readLength);
 
         if CY3240_FAILURE(result)
-            printf("Failed to transmit packet\n");
+           printf("Failed to transmit packet\n");
     }
 
     // Set the clock rate
@@ -835,7 +835,7 @@ cy3240_write(
                         more);
 
                 if CY3240_FAILURE(result)
-                    printf("Failed to pack send data in write input packet: %i\n", result);
+                   printf("Failed to pack send data in write input packet: %i\n", result);
             }
 
             if (CY3240_SUCCESS(result)) {
@@ -849,7 +849,7 @@ cy3240_write(
                         &readLength);
 
                 if CY3240_FAILURE(result)
-                    printf("Failed to transmit write packet\n");
+                   printf("Failed to transmit write packet\n");
             }
 
             if (CY3240_SUCCESS(result)) {
@@ -861,7 +861,7 @@ cy3240_write(
                         &bytesLeft);
 
                 if CY3240_FAILURE(result)
-                    printf("Failed to transmit all data\n");
+                   printf("Failed to transmit all data\n");
             }
 
             // No longer the first time
@@ -935,7 +935,7 @@ cy3240_read(
                     printf("Failed to transmit read packet\n");
             }
 
-			printf("read lengt: %d\n", readLength);
+		//printf("read lengt: %d\n", readLength);
 
             // unpack the result
             if (CY3240_SUCCESS(result)) {
@@ -1022,7 +1022,7 @@ cy3240_open(
             error = pCy3240->w.init();
 
             if (HID_FAILURE(error)) {
-                 fprintf(stderr, "hid_init failed with return code %d\n", error);
+                 //fprintf(stderr, "hid_init failed with return code %d\n", error);
                  result = CY3240_ERROR_HID;
             }
         }
@@ -1030,15 +1030,15 @@ cy3240_open(
         // For open the usb device
         if CY3240_SUCCESS(result) {
 
-            fprintf(stdout, "hid_open %d %d %d\n", pCy3240->vendor_id, pCy3240->product_id, NULL);
+            //fprintf(stdout, "hid_open %d %d %d\n", pCy3240->vendor_id, pCy3240->product_id, NULL);
             //pCy3240->pHid = hid_open_path("/dev/usb/hiddev2");
 
             pCy3240->pHid = pCy3240->w.open(pCy3240->vendor_id, pCy3240->product_id, NULL);
-            fprintf(stdout, "hid device address: %d\n", pCy3240->pHid);
+            //fprintf(stdout, "hid device address: %d\n", pCy3240->pHid);
 
 
        		if (pCy3240->pHid == NULL) {
-                fprintf(stderr, "hid_force_open failed with return code %d\n", error);
+                //fprintf(stderr, "hid_force_open failed with return code %d\n", error);
                 result = CY3240_ERROR_HID;
             }
 
@@ -1047,16 +1047,16 @@ cy3240_open(
 
 			// Read the Manufacturer String
 			hid_get_manufacturer_string(pCy3240->pHid, wstr, MAX_STR);
-			printf("Manufacturer String: %ls\n", wstr);
+			//printf("Manufacturer String: %ls\n", wstr);
 
 			// Read the Product String
 			hid_get_product_string(pCy3240->pHid, wstr, MAX_STR);
-			printf("Product String: %ls\n", wstr);
+			//printf("Product String: %ls\n", wstr);
 
 			// Read the Serial Number String
 			hid_get_serial_number_string(pCy3240->pHid, wstr, MAX_STR);
-			printf("Serial Number String: %ls", wstr);
-			printf("\n");
+			//printf("Serial Number String: %ls", wstr);
+			//printf("\n");
 
 			//printf("Numbered reorts: %d\n", pCy3240->pHid->uses_numbered_reports);
 

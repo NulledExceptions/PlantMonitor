@@ -49,10 +49,23 @@ void print_buffer(const uint8_t* const buffer, uint16_t length) {
 
 
 typedef struct __attribute__((packed)) {
-	uint16_t soilResistance;
-    int16_t temperature;
-    uint16_t humidity;
-    uint16_t illuminance;        
+	uint8_t motionDectected;
+	uint8_t detectionDistance;
+	int16_t sensorRawValue;
+	int16_t highThreshold;
+	int16_t lowThreshold;
+
+	int16_t Vth;
+	uint16_t Rth;
+	int16_t temperature;
+
+	int16_t alsCurrent;
+	uint16_t illuminance;
+
+	uint16_t humidityRawCounts;
+	uint16_t capacitance;
+	uint16_t humidity;
+	uint16_t rawCountsRefCap;
 } sensor_data;
 
 
@@ -95,11 +108,11 @@ int main(int argc, char *argv[]) {
 	while (true) {
 		cy3240_read(handle, 0x08, (uint8_t*) &sensorData, &length);
 
-		// print_buffer(data, length);
-
-		fprintf(stdout, "data: %d %.2f %.2f %d\n",
-				sensorData.soilResistance, sensorData.temperature / 100.0,
-				sensorData.humidity / 10.0, sensorData.illuminance);
+		fprintf(stdout, "{\"motion\": %d, \"temperature\": %.2f, \"humidity\": %.2f, \"illuminance\": %d}\n",
+				sensorData.motionDectected,
+				sensorData.temperature / 100.0,
+				sensorData.humidity / 10.0,
+				sensorData.illuminance);
 
 		usleep(SLEEP_BETWEEN_CMD);
 	}
