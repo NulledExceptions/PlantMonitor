@@ -23,6 +23,11 @@ print("Starting PSOC Reader")
 time.sleep(5)
 
 ser = serial.Serial('/dev/ttyACM1', 9600)
+try:
+	ser.readline()
+except:
+	ser = serial.Serial('/dev/ttyACM0', 9600)
+	
 
 jsonTxt = ""
 psocJson = ""
@@ -40,6 +45,7 @@ totalHumidity = 0
 totalTemp = 0
 totalMotion = 0
 endMotion = 1
+moisture = 0
 
 psocJson = json.loads("{}")
 alexaJson = json.loads("{}")
@@ -81,7 +87,7 @@ class subCallback(SubscribeCallback):
 		pass
 
 pubnub.add_listener(subCallback())
-pubnub.subscribe().channels(channel).execute()
+pubnub.subscribe().channels(channel+"A").execute()
 
 def takePhoto():
 	c= subprocess.check_output(["vcgencmd","get_camera"])
@@ -101,8 +107,9 @@ def publishDataToPubnub():
 		avgHumidity = round(totalHumidity/totalCount,2)
 		avgLight = round(totalLight/totalCount,0)
 		avgMoisture = round(float(totalMoisture)/totalCount,0)
-		alexaJsonTxt = '{"averages":[{"timesMotionDetected":'+str(avgMotion)+', "averageTemp":'+str(avgTemp)+', "averageHumidity":'+str(avgHumidity)+', "averageLight":'+str(avgLight)+', "averageMoisture":'+str(avgMoisture)+'}],"current":[{"currentTemp":'+str(psocJson["temperature"])+', "currentHumidity":'+str(psocJson["humidity"])+', "currentLight":'+str(psocJson["illuminance"])+', "currentMoisture":'+str(ser.readline())+'}]}'
+		alexaJsonTxt = '{"averages":[{"timesMotionDetected":'+str(avgMotion)+', "averageTemp":'+str(avgTemp)+', "averageHumidity":'+str(avgHumidity)+', "averageLight":'+str(avgLight)+', "averageMoisture":'+str(avgMoisture)+'}],"current":[{"currentTemp":'+str(psocJson["temperature"])+', "currentHumidity":'+str(psocJson["humidity"])+', "currentLight":'+str(psocJson["illuminance"])+', "currentMoisture":'+str(moisture)+'}]}'
 		alexaJson = json.loads(alexaJsonTxt)
+		pubnub.publish().channel(channel+"B").message(alexaJson).should_store(True)
 		print(alexaJson)	
 	
 	threading.Timer(10.0, publishDataToPubnub).start()
@@ -126,5 +133,9 @@ while (1==1):
 	totalHumidity = totalHumidity + psocJson["humidity"]
 	totalLight = totalLight + psocJson["illuminance"]
 	totalCount = totalCount + 1
-	totalMoisture = ser.readline()
-
+	try:
+		totalMoisture = totalMoisture + float(str(ser.readline()).strip("b'").strip("\\r\\n"))
+		moisture = float(str(ser.readline()).strip("b'").strip("\\r\\n"))
+	except:
+		totalMoisture = totalMoisture + 0
+		print("Can't connect to Arduino")
